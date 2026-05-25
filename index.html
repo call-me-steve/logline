@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logline</title>
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --bg2: #ffffff;
+    --bg3: #f0f1f3;
+    --border: #d0d3d8;
+    --text: #1a1d23;
+    --text2: #4a5568;
+    --text3: #718096;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --danger: #dc2626;
+    --danger-hover: #b91c1c;
+    --success: #16a34a;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --mono: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+
+    /* Type colors */
+    --incident: #dc2626;
+    --deployment: #2563eb;
+    --meeting: #7c3aed;
+    --escalation: #ea580c;
+    --other: #4b5563;
+
+    /* Category colors */
+    --cat-detection: #dc2626;
+    --cat-engineering: #2563eb;
+    --cat-comms: #7c3aed;
+    --cat-external: #ea580c;
+    --cat-resolution: #16a34a;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1117;
+      --bg2: #1a1d27;
+      --bg3: #252836;
+      --border: #2d3148;
+      --text: #e2e8f0;
+      --text2: #a0aec0;
+      --text3: #718096;
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  #header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  #header-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  #brand {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.3px;
+    flex-shrink: 0;
+  }
+
+  #title-input {
+    flex: 1;
+    min-width: 220px;
+    font-size: 14px;
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: var(--text);
+    padding: 2px 4px;
+    outline: none;
+    font-family: var(--font);
+  }
+  #title-input:focus { border-bottom-color: var(--accent); }
+  #title-input::placeholder { color: var(--text3); font-weight: 400; }
+
+  .type-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    border: none;
+    font-family: var(--font);
+  }
+  .type-badge.incident  { background: #fee2e2; color: var(--incident); }
+  .type-badge.deployment { background: #dbeafe; color: var(--deployment); }
+  .type-badge.meeting   { background: #ede9fe; color: var(--meeting); }
+  .type-badge.escalation { background: #ffedd5; color: var(--escalation); }
+  .type-badge.other     { background: #f3f4f6; color: var(--other); }
+
+  @media (prefers-color-scheme: dark) {
+    .type-badge.incident  { background: #3f1212; }
+    .type-badge.deployment { background: #1e3a5f; }
+    .type-badge.meeting   { background: #2e1e5f; }
+    .type-badge.escalation { background: #3d1f0a; }
+    .type-badge.other     { background: #2d2f36; }
+  }
+
+  #type-select {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text);
+    font-family: var(--font);
+    outline: none;
+  }
+
+  #status-toggle {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-family: var(--font);
+    letter-spacing: 0.3px;
+    outline: none;
+  }
+  #status-toggle.active     { background: #dcfce7; color: #15803d; border-color: #86efac; }
+  #status-toggle.monitoring { background: #fef9c3; color: #a16207; border-color: #fde047; }
+  #status-toggle.closed     { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+
+  @media (prefers-color-scheme: dark) {
+    #status-toggle.active     { background: #14532d; color: #86efac; border-color: #166534; }
+    #status-toggle.monitoring { background: #422006; color: #fde047; border-color: #713f12; }
+    #status-toggle.closed     { background: #1e293b; color: #94a3b8; border-color: #334155; }
+  }
+
+  #timer-group {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  #clock {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  #elapsed {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--success);
+    font-weight: 600;
+  }
+  #elapsed.hidden { display: none; }
+
+  #header-bottom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  #tags-input {
+    flex: 1;
+    font-size: 13px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: var(--text);
+    padding: 2px 4px;
+    outline: none;
+    font-family: var(--font);
+    min-width: 150px;
+  }
+  #tags-input:focus { border-bottom-color: var(--accent); }
+  #tags-input::placeholder { color: var(--text3); }
+
+  #tags-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .tag-pill {
+    font-size: 11px;
+    padding: 1px 7px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text2);
+  }
+
+  /* Main content */
+  #main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* Entry row */
+  #entry-area {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  #entry-area h2 {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text3);
+    margin-bottom: 10px;
+  }
+
+  .entry-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .entry-row input,
+  .entry-row select {
+    font-family: var(--font);
+    font-size: 13px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 8px;
+    border-radius: 4px;
+    outline: none;
+  }
+  .entry-row input:focus,
+  .entry-row select:focus { border-color: var(--accent); }
+
+  #new-time { width: 72px; font-family: var(--mono); }
+  #new-category { width: 130px; }
+  #new-desc { flex: 1; }
+  #new-author { width: 80px; }
+
+  .cat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+  .cat-dot.detection  { background: var(--cat-detection); }
+  .cat-dot.engineering { background: var(--cat-engineering); }
+  .cat-dot.comms      { background: var(--cat-comms); }
+  .cat-dot.external   { background: var(--cat-external); }
+  .cat-dot.resolution { background: var(--cat-resolution); }
+
+  #add-btn {
+    padding: 6px 14px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    outline: none;
+    flex-shrink: 0;
+  }
+  #add-btn:hover { background: var(--accent-hover); }
+  #add-btn:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Timeline */
+  #timeline-area {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  #timeline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg3);
+  }
+
+  #timeline-header h2 {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text3);
+  }
+
+  #event-count {
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  #timeline {
+    padding: 0;
+  }
+
+  .event-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    position: relative;
+  }
+  .event-item:last-child { border-bottom: none; }
+  .event-item:hover { background: var(--bg3); }
+  .event-item.editing { background: var(--bg3); }
+
+  .event-time {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text2);
+    width: 42px;
+    flex-shrink: 0;
+  }
+
+  .event-cat-label {
+    font-size: 11px;
+    font-weight: 600;
+    width: 96px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .event-cat-label.detection  { color: var(--cat-detection); }
+  .event-cat-label.engineering { color: var(--cat-engineering); }
+  .event-cat-label.comms      { color: var(--cat-comms); }
+  .event-cat-label.external   { color: var(--cat-external); }
+  .event-cat-label.resolution { color: var(--cat-resolution); }
+
+  .event-desc {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .event-author {
+    font-size: 11px;
+    color: var(--text3);
+    width: 50px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .event-delete {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+    opacity: 0;
+    transition: opacity 0.1s;
+    flex-shrink: 0;
+    font-family: var(--font);
+    outline: none;
+  }
+  .event-item:hover .event-delete { opacity: 1; }
+  .event-delete:focus { opacity: 1; outline: 1px solid var(--danger); border-radius: 2px; }
+
+  /* Inline edit */
+  .event-edit-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+  .event-edit-row:last-child { border-bottom: none; }
+
+  .event-edit-row input,
+  .event-edit-row select {
+    font-family: var(--font);
+    font-size: 13px;
+    background: var(--bg2);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    padding: 4px 7px;
+    border-radius: 4px;
+    outline: none;
+  }
+  .ev-time { width: 68px; font-family: var(--mono); }
+  .ev-cat  { width: 130px; }
+  .ev-desc { flex: 1; }
+  .ev-author { width: 78px; }
+
+  .save-btn {
+    padding: 4px 10px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    flex-shrink: 0;
+  }
+
+  #empty-state {
+    padding: 32px;
+    text-align: center;
+    color: var(--text3);
+    font-size: 13px;
+  }
+
+  /* Summary bar */
+  #summary-bar {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 16px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    align-items: center;
+  }
+
+  .summary-item {
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .summary-item strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .summary-cat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  /* Export */
+  #export-area {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  #export-area h2 {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text3);
+    margin-right: 4px;
+  }
+
+  .export-btn {
+    padding: 6px 14px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text);
+    font-family: var(--font);
+    outline: none;
+    transition: background 0.1s;
+  }
+  .export-btn:hover { background: var(--border); }
+  .export-btn:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .export-btn.copied { background: #dcfce7; color: #15803d; border-color: #86efac; }
+
+  @media (prefers-color-scheme: dark) {
+    .export-btn.copied { background: #14532d; color: #86efac; border-color: #166534; }
+  }
+
+  /* Footer */
+  #footer {
+    border-top: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  #new-log-btn {
+    padding: 4px 12px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--text2);
+    font-family: var(--font);
+    outline: none;
+  }
+  #new-log-btn:hover { border-color: var(--danger); color: var(--danger); }
+  #new-log-btn:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Utilities */
+  select option { background: var(--bg2); color: var(--text); }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div id="header-top">
+    <span id="brand">Logline</span>
+    <input id="title-input" type="text" placeholder="Log title — e.g. Payment API degradation — 2024-05-10" autocomplete="off" spellcheck="false">
+    <select id="type-select">
+      <option value="incident">Incident</option>
+      <option value="deployment">Deployment</option>
+      <option value="meeting">Meeting</option>
+      <option value="escalation">Escalation</option>
+      <option value="other">Other</option>
+    </select>
+    <button id="status-toggle" class="active">Active</button>
+    <div id="timer-group">
+      <span id="clock"></span>
+      <span id="elapsed" class="hidden">+0:00</span>
+    </div>
+  </div>
+  <div id="header-bottom">
+    <input id="tags-input" type="text" placeholder="Tags: payments-api, checkout-service (comma-separated)" autocomplete="off">
+    <div id="tags-pills"></div>
+  </div>
+</div>
+
+<div id="main">
+  <div id="entry-area">
+    <h2>New Event</h2>
+    <div class="entry-row">
+      <input id="new-time" type="text" placeholder="HH:MM" maxlength="5" autocomplete="off">
+      <select id="new-category">
+        <option value="detection">Detection</option>
+        <option value="engineering">Engineering</option>
+        <option value="comms">Comms</option>
+        <option value="external">External</option>
+        <option value="resolution">Resolution</option>
+      </select>
+      <input id="new-desc" type="text" placeholder="Describe what happened…" autocomplete="off">
+      <input id="new-author" type="text" placeholder="Author" autocomplete="off" maxlength="20">
+      <button id="add-btn">Add</button>
+    </div>
+  </div>
+
+  <div id="timeline-area">
+    <div id="timeline-header">
+      <h2>Timeline</h2>
+      <span id="event-count">0 events</span>
+    </div>
+    <div id="timeline">
+      <div id="empty-state">No events yet. Add the first event above.</div>
+    </div>
+  </div>
+
+  <div id="summary-bar">
+    <div class="summary-item"><strong id="summary-duration">—</strong> duration</div>
+    <div class="summary-item"><strong id="summary-total">0</strong> events</div>
+    <div id="summary-cats"></div>
+  </div>
+
+  <div id="export-area">
+    <h2>Export</h2>
+    <button class="export-btn" id="copy-text-btn">Copy as plain text</button>
+    <button class="export-btn" id="copy-md-btn">Copy as Markdown</button>
+  </div>
+</div>
+
+<div id="footer">
+  <span id="last-saved">Not saved yet</span>
+  <button id="new-log-btn">New log</button>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ── State ───────────────────────────────────────────────────────────────────
+  let state = {
+    title: '',
+    type: 'incident',
+    status: 'active',
+    tags: [],
+    events: [],
+    firstEventTime: null, // ISO timestamp of when first event was added
+  };
+
+  const STATUSES = ['active', 'monitoring', 'closed'];
+  const STATUS_LABELS = { active: 'Active', monitoring: 'Monitoring', closed: 'Closed' };
+  const CAT_LABELS = { detection: 'Detection', engineering: 'Engineering', comms: 'Comms', external: 'External', resolution: 'Resolution' };
+
+  // ── DOM refs ────────────────────────────────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const titleInput   = $('title-input');
+  const typeSelect   = $('type-select');
+  const statusToggle = $('status-toggle');
+  const clockEl      = $('clock');
+  const elapsedEl    = $('elapsed');
+  const tagsInput    = $('tags-input');
+  const tagsPills    = $('tags-pills');
+  const newTime      = $('new-time');
+  const newCat       = $('new-category');
+  const newDesc      = $('new-desc');
+  const newAuthor    = $('new-author');
+  const addBtn       = $('add-btn');
+  const timeline     = $('timeline');
+  const eventCount   = $('event-count');
+  const summaryDuration = $('summary-duration');
+  const summaryTotal    = $('summary-total');
+  const summaryCats     = $('summary-cats');
+  const lastSaved    = $('last-saved');
+  const newLogBtn    = $('new-log-btn');
+
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+  function pad2(n) { return String(n).padStart(2, '0'); }
+
+  function nowHHMM() {
+    const d = new Date();
+    return pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+
+  function nowHHMMSS() {
+    const d = new Date();
+    return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
+  }
+
+  function parseHHMM(s) {
+    const m = s.match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    const h = parseInt(m[1], 10), mi = parseInt(m[2], 10);
+    if (h > 23 || mi > 59) return null;
+    return h * 60 + mi;
+  }
+
+  function formatDuration(minutes) {
+    if (minutes < 0) minutes = 0;
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h === 0) return m + 'm';
+    return h + 'h ' + m + 'm';
+  }
+
+  function elapsedSince(isoTime) {
+    const diff = Math.floor((Date.now() - new Date(isoTime).getTime()) / 1000);
+    const h = Math.floor(diff / 3600);
+    const m = Math.floor((diff % 3600) / 60);
+    const s = diff % 60;
+    if (h > 0) return '+' + h + ':' + pad2(m) + ':' + pad2(s);
+    return '+' + m + ':' + pad2(s);
+  }
+
+  function uid() {
+    return Math.random().toString(36).slice(2) + Date.now().toString(36);
+  }
+
+  function escapeMd(s) {
+    return s.replace(/([|`*_~\[\]])/g, '\\$1');
+  }
+
+  // ── Clock ────────────────────────────────────────────────────────────────────
+  function tickClock() {
+    clockEl.textContent = nowHHMMSS();
+    if (state.firstEventTime) {
+      elapsedEl.textContent = elapsedSince(state.firstEventTime);
+      elapsedEl.classList.remove('hidden');
+    } else {
+      elapsedEl.classList.add('hidden');
+    }
+  }
+  setInterval(tickClock, 1000);
+  tickClock();
+
+  // ── Persist ──────────────────────────────────────────────────────────────────
+  function save() {
+    localStorage.setItem('logline_state', JSON.stringify(state));
+    lastSaved.textContent = 'Last saved: ' + nowHHMMSS();
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem('logline_state');
+      if (raw) {
+        const loaded = JSON.parse(raw);
+        Object.assign(state, loaded);
+      }
+    } catch(e) {}
+  }
+
+  // ── Render header ────────────────────────────────────────────────────────────
+  function renderHeader() {
+    titleInput.value = state.title;
+
+    typeSelect.value = state.type;
+    // Also show a colored badge next to or instead — we use a select styled as badge
+    typeSelect.className = '';
+    typeSelect.style.background = '';
+    typeSelect.style.color = '';
+
+    statusToggle.className = state.status;
+    statusToggle.textContent = STATUS_LABELS[state.status];
+
+    renderTags();
+  }
+
+  function renderTags() {
+    tagsPills.innerHTML = '';
+    state.tags.forEach(tag => {
+      const pill = document.createElement('span');
+      pill.className = 'tag-pill';
+      pill.textContent = tag;
+      tagsPills.appendChild(pill);
+    });
+  }
+
+  // ── Render timeline ──────────────────────────────────────────────────────────
+  let editingId = null;
+
+  function sortedEvents() {
+    return [...state.events].sort((a, b) => {
+      const pa = parseHHMM(a.time), pb = parseHHMM(b.time);
+      if (pa === null && pb === null) return 0;
+      if (pa === null) return 1;
+      if (pb === null) return -1;
+      return pa - pb;
+    });
+  }
+
+  function renderTimeline() {
+    const events = sortedEvents();
+    eventCount.textContent = events.length + (events.length === 1 ? ' event' : ' events');
+
+    if (events.length === 0) {
+      timeline.innerHTML = '<div id="empty-state">No events yet. Add the first event above.</div>';
+      renderSummary(events);
+      return;
+    }
+
+    timeline.innerHTML = '';
+    events.forEach(ev => {
+      if (ev.id === editingId) {
+        timeline.appendChild(buildEditRow(ev));
+      } else {
+        timeline.appendChild(buildEventRow(ev));
+      }
+    });
+
+    renderSummary(events);
+  }
+
+  function buildEventRow(ev) {
+    const div = document.createElement('div');
+    div.className = 'event-item';
+    div.dataset.id = ev.id;
+
+    const timeEl = document.createElement('span');
+    timeEl.className = 'event-time';
+    timeEl.textContent = ev.time;
+
+    const catEl = document.createElement('span');
+    catEl.className = 'event-cat-label ' + ev.category;
+
+    const dot = document.createElement('span');
+    dot.className = 'cat-dot ' + ev.category;
+    catEl.appendChild(dot);
+    catEl.appendChild(document.createTextNode(CAT_LABELS[ev.category] || ev.category));
+
+    const descEl = document.createElement('span');
+    descEl.className = 'event-desc';
+    descEl.textContent = ev.desc;
+
+    const authorEl = document.createElement('span');
+    authorEl.className = 'event-author';
+    authorEl.textContent = ev.author ? '(' + ev.author + ')' : '';
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'event-delete';
+    delBtn.textContent = '×';
+    delBtn.title = 'Delete event';
+    delBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      state.events = state.events.filter(e2 => e2.id !== ev.id);
+      if (state.events.length === 0) state.firstEventTime = null;
+      save();
+      renderTimeline();
+    });
+
+    div.appendChild(timeEl);
+    div.appendChild(catEl);
+    div.appendChild(descEl);
+    div.appendChild(authorEl);
+    div.appendChild(delBtn);
+
+    div.addEventListener('click', () => {
+      editingId = ev.id;
+      renderTimeline();
+    });
+
+    return div;
+  }
+
+  function buildEditRow(ev) {
+    const div = document.createElement('div');
+    div.className = 'event-edit-row';
+
+    const timeIn = document.createElement('input');
+    timeIn.className = 'ev-time';
+    timeIn.type = 'text';
+    timeIn.value = ev.time;
+    timeIn.maxLength = 5;
+
+    const catIn = document.createElement('select');
+    catIn.className = 'ev-cat';
+    Object.entries(CAT_LABELS).forEach(([val, label]) => {
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = label;
+      if (val === ev.category) opt.selected = true;
+      catIn.appendChild(opt);
+    });
+
+    const descIn = document.createElement('input');
+    descIn.className = 'ev-desc';
+    descIn.type = 'text';
+    descIn.value = ev.desc;
+
+    const authIn = document.createElement('input');
+    authIn.className = 'ev-author';
+    authIn.type = 'text';
+    authIn.value = ev.author || '';
+    authIn.maxLength = 20;
+
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'save-btn';
+    saveBtn.textContent = 'Save';
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'event-delete';
+    delBtn.textContent = '×';
+    delBtn.style.opacity = '1';
+    delBtn.title = 'Delete event';
+
+    function commitEdit() {
+      const t = timeIn.value.trim();
+      if (!t || parseHHMM(t) === null) { timeIn.focus(); return; }
+      const d = descIn.value.trim();
+      if (!d) { descIn.focus(); return; }
+      ev.time = t;
+      ev.category = catIn.value;
+      ev.desc = d;
+      ev.author = authIn.value.trim();
+      editingId = null;
+      save();
+      renderTimeline();
+    }
+
+    saveBtn.addEventListener('click', commitEdit);
+
+    delBtn.addEventListener('click', () => {
+      state.events = state.events.filter(e2 => e2.id !== ev.id);
+      if (state.events.length === 0) state.firstEventTime = null;
+      editingId = null;
+      save();
+      renderTimeline();
+    });
+
+    [timeIn, catIn, descIn, authIn].forEach(el => {
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); commitEdit(); }
+        if (e.key === 'Escape') { editingId = null; renderTimeline(); }
+      });
+    });
+
+    div.appendChild(timeIn);
+    div.appendChild(catIn);
+    div.appendChild(descIn);
+    div.appendChild(authIn);
+    div.appendChild(saveBtn);
+    div.appendChild(delBtn);
+
+    setTimeout(() => descIn.focus(), 0);
+
+    return div;
+  }
+
+  // ── Summary bar ──────────────────────────────────────────────────────────────
+  function renderSummary(events) {
+    summaryTotal.textContent = events.length;
+
+    if (events.length < 2) {
+      summaryDuration.textContent = '—';
+    } else {
+      const times = events.map(e => parseHHMM(e.time)).filter(t => t !== null);
+      if (times.length >= 2) {
+        const dur = Math.max(...times) - Math.min(...times);
+        summaryDuration.textContent = formatDuration(dur);
+      } else {
+        summaryDuration.textContent = '—';
+      }
+    }
+
+    // Category counts
+    const cats = {};
+    events.forEach(e => { cats[e.category] = (cats[e.category] || 0) + 1; });
+    summaryCats.innerHTML = '';
+    Object.entries(cats).sort((a, b) => b[1] - a[1]).forEach(([cat, count]) => {
+      const el = document.createElement('div');
+      el.className = 'summary-cat';
+      el.innerHTML = '<span class="cat-dot ' + cat + '"></span><span>' + CAT_LABELS[cat] + ': ' + count + '</span>';
+      summaryCats.appendChild(el);
+    });
+  }
+
+  // ── Add event ────────────────────────────────────────────────────────────────
+  function addEvent() {
+    const t = newTime.value.trim();
+    if (!t || parseHHMM(t) === null) {
+      newTime.focus();
+      newTime.style.borderColor = 'var(--danger)';
+      setTimeout(() => newTime.style.borderColor = '', 1200);
+      return;
+    }
+    const desc = newDesc.value.trim();
+    if (!desc) {
+      newDesc.focus();
+      newDesc.style.borderColor = 'var(--danger)';
+      setTimeout(() => newDesc.style.borderColor = '', 1200);
+      return;
+    }
+
+    const author = newAuthor.value.trim();
+    // Remember author
+    if (author) localStorage.setItem('logline_last_author', author);
+
+    const ev = {
+      id: uid(),
+      time: t,
+      category: newCat.value,
+      desc: desc,
+      author: author,
+    };
+
+    state.events.push(ev);
+    if (!state.firstEventTime) state.firstEventTime = new Date().toISOString();
+
+    newDesc.value = '';
+    newTime.value = nowHHMM();
+    newDesc.focus();
+
+    save();
+    renderTimeline();
+  }
+
+  // ── Entry row keyboard nav ───────────────────────────────────────────────────
+  function setupEntryKeyboard() {
+    const fields = [newTime, newCat, newDesc, newAuthor, addBtn];
+
+    fields.forEach((f, i) => {
+      f.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addEvent();
+        }
+        // Tab is default browser behavior — no override needed
+      });
+    });
+
+    addBtn.addEventListener('click', addEvent);
+  }
+
+  // ── Header controls ──────────────────────────────────────────────────────────
+  titleInput.addEventListener('input', () => {
+    state.title = titleInput.value;
+    save();
+  });
+
+  typeSelect.addEventListener('change', () => {
+    state.type = typeSelect.value;
+    save();
+  });
+
+  statusToggle.addEventListener('click', () => {
+    const idx = STATUSES.indexOf(state.status);
+    state.status = STATUSES[(idx + 1) % STATUSES.length];
+    statusToggle.className = state.status;
+    statusToggle.textContent = STATUS_LABELS[state.status];
+    save();
+  });
+  statusToggle.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); statusToggle.click(); }
+  });
+
+  tagsInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const val = tagsInput.value.replace(/,/g, '').trim();
+      if (val && !state.tags.includes(val)) {
+        state.tags.push(val);
+        save();
+        renderTags();
+      }
+      tagsInput.value = '';
+    }
+    if (e.key === 'Backspace' && tagsInput.value === '' && state.tags.length > 0) {
+      state.tags.pop();
+      save();
+      renderTags();
+    }
+  });
+
+  tagsInput.addEventListener('blur', () => {
+    const val = tagsInput.value.trim().replace(/,/g, '');
+    if (val && !state.tags.includes(val)) {
+      state.tags.push(val);
+      save();
+      renderTags();
+    }
+    tagsInput.value = '';
+  });
+
+  // ── Export ────────────────────────────────────────────────────────────────────
+  function getDuration() {
+    const events = sortedEvents();
+    if (events.length < 2) return null;
+    const times = events.map(e => parseHHMM(e.time)).filter(t => t !== null);
+    if (times.length < 2) return null;
+    return formatDuration(Math.max(...times) - Math.min(...times));
+  }
+
+  function buildPlainText() {
+    const events = sortedEvents();
+    const dur = getDuration() || '—';
+    const title = state.title || '(untitled)';
+    const typeStr = state.type.charAt(0).toUpperCase() + state.type.slice(1);
+    const statusStr = STATUS_LABELS[state.status];
+    const tagsStr = state.tags.length ? state.tags.join(', ') : '—';
+    const sep = '─'.repeat(41);
+
+    let lines = [];
+    lines.push('LOGLINE — ' + title);
+    lines.push('Type: ' + typeStr + ' | Status: ' + statusStr + ' | Duration: ' + dur);
+    lines.push('Tags: ' + tagsStr);
+    lines.push(sep);
+    lines.push('');
+
+    const catW = 12;
+    events.forEach(ev => {
+      const cat = '[' + (CAT_LABELS[ev.category] || ev.category) + ']';
+      const author = ev.author ? ' (' + ev.author + ')' : '';
+      lines.push(ev.time + ' ' + cat.padEnd(catW) + ' ' + ev.desc + author);
+    });
+
+    lines.push('');
+    lines.push(sep);
+    lines.push('Total events: ' + events.length + ' | Duration: ' + dur);
+
+    return lines.join('\n');
+  }
+
+  function buildMarkdown() {
+    const events = sortedEvents();
+    const dur = getDuration() || '—';
+    const title = state.title || '(untitled)';
+    const typeStr = state.type.charAt(0).toUpperCase() + state.type.slice(1);
+    const statusStr = STATUS_LABELS[state.status];
+    const tagsStr = state.tags.length ? state.tags.map(t => '`' + t + '`').join(', ') : '—';
+
+    let lines = [];
+    lines.push('## ' + escapeMd(title));
+    lines.push('');
+    lines.push('**Type:** ' + typeStr + ' | **Status:** ' + statusStr + ' | **Duration:** ' + dur);
+    lines.push('');
+    lines.push('**Tags:** ' + tagsStr);
+    lines.push('');
+    lines.push('### Timeline');
+    lines.push('');
+    lines.push('| Time | Category | Event | Author |');
+    lines.push('|------|----------|-------|--------|');
+    events.forEach(ev => {
+      lines.push('| ' + ev.time + ' | ' + (CAT_LABELS[ev.category] || ev.category) + ' | ' + escapeMd(ev.desc) + ' | ' + escapeMd(ev.author || '') + ' |');
+    });
+    lines.push('');
+    lines.push('---');
+    lines.push('');
+    lines.push('**Total events:** ' + events.length + ' | **Duration:** ' + dur);
+
+    return lines.join('\n');
+  }
+
+  function copyWithFeedback(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.classList.remove('copied');
+      }, 2000);
+    }).catch(() => {
+      // Fallback for older browsers
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = orig;
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  $('copy-text-btn').addEventListener('click', function() {
+    copyWithFeedback(this, buildPlainText());
+  });
+
+  $('copy-md-btn').addEventListener('click', function() {
+    copyWithFeedback(this, buildMarkdown());
+  });
+
+  // ── New log ───────────────────────────────────────────────────────────────────
+  newLogBtn.addEventListener('click', () => {
+    if (!confirm('Start a new log? This will clear all current data.')) return;
+    state = { title: '', type: 'incident', status: 'active', tags: [], events: [], firstEventTime: null };
+    editingId = null;
+    localStorage.removeItem('logline_state');
+    lastSaved.textContent = 'Not saved yet';
+    renderHeader();
+    renderTimeline();
+    newTime.value = nowHHMM();
+  });
+
+  // ── Init ──────────────────────────────────────────────────────────────────────
+  function init() {
+    load();
+    renderHeader();
+    renderTimeline();
+    setupEntryKeyboard();
+
+    // Set new-time to current time
+    newTime.value = nowHHMM();
+
+    // Restore last author
+    const lastAuthor = localStorage.getItem('logline_last_author');
+    if (lastAuthor) newAuthor.value = lastAuthor;
+
+    // Focus desc on load
+    newDesc.focus();
+
+    // Update new-time every minute if empty or matches current time pattern
+    setInterval(() => {
+      // Only auto-update if the field hasn't been manually changed
+      // We track this simply: if the field is not focused and is still a valid HH:MM
+      if (document.activeElement !== newTime) {
+        newTime.value = nowHHMM();
+      }
+    }, 60000);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
